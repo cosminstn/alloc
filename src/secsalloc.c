@@ -1,23 +1,26 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 const int MAX_MEM_SIZE = 30000;
-
+int initialized = 0;
 char *totalMemory;
 
-typedef struct {
+typedef struct tblock {
     size_t size;
     int free;
-    block *next;
+    struct tblock * next;     //https://stackoverflow.com/questions/14326954/pointer-to-self-struct-in-c
 } block;
 
-block *init = (void*) totalMemory;
+block *init = NULL;
 
 void initialize() {
-    totalMemory = 
+    totalMemory = (char *)malloc(MAX_MEM_SIZE * sizeof(char));
+    init = (void*) totalMemory;
     init->size = MAX_MEM_SIZE - sizeof(block);
     init->free = 1;
     init->next = NULL;
+    initialized = 1;
 }
 
 void sliceBlock(block* host, size_t size) {
@@ -31,7 +34,7 @@ void sliceBlock(block* host, size_t size) {
 }
 
 void *secs_alloc(size_t nrOfBytes) {
-    if(!(init->size)) {
+    if(initialized == 0 || (!(init->size))) {
         //INITIALIZE THE MEMORY BLOCK
         initialize();
     }
